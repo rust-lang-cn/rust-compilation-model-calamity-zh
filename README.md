@@ -1,8 +1,8 @@
-# rust-compilation-model-calamity-zh
+# [《Rust 编译模型之殇》](https://pingcap.com/blog/rust-compilation-model-calamity/)
 
-Brian的系列文章[《Rust编码模型之殇》](https://pingcap.com/blog/rust-compilation-model-calamity/)
+Brian撰写了Rust编译模型相关的系列文章，也包含了PingCAP的TiKV项目在实际生产应用中如何对其优化的一些实践。
 
-本项目为该系列文章的中文翻译仓库。
+此项目为该系列文章的中文翻译仓库。
 
 ### 系列文章：
 
