@@ -10,6 +10,7 @@ Brian撰写了Rust编译模型相关的系列文章，也包含了PingCAP的TiKV
 
 - [英文](./posts/en/20200130.md)
 - [中文](./posts/zh/20200130.md)
+- [中英文对照](./posts/zh/20200130_comparison.md)
 
 *未完待续*
 
