@@ -61,13 +61,13 @@ TiDB 中的其他节点是用 Go 编写的，当然，Go 与 Rust 有不同的�
 
 Rust developers, on the other hand, are used to taking a lot of coffee breaks (or tea, cigarettes, sobbing, or whatever as the case may be — Rust developers have the spare time to nurse their demons).
 
-而另一边，Rust 开发人员却在那喝咖啡休息，或者喝茶、抽烟，或者诉苦，视情况而定。Rust开发人员有多余的时间（Go 开发者却没有）来跨越内心的“阴影（译注：据说，TiKV 一天只有 24 次编译机会，用一次少一次）”。
+在GO开发人员忙碌工作的同时，Rust 开发人员却在编译时间休息(喝咖啡、喝茶、抽烟，或者诉苦)。Rust开发人员有多余的时间（Go 开发者却没有）来跨越内心的“阴影（译注：据说，TiKV 一天只有 24 次编译机会，用一次少一次）”。
 
 ## 概览: TiKV 编译时冒险历程
 
 The first entry in this series is just a story about the history of Rust with respect to compilation time. Since it might take several more entries before we dive into concrete technical details of what we’ve done with TiKV’s compile times, here’s a pretty graph to capture your imagination, without comment.
 
-本系列的第一篇文章只是关于 Rust 在编译时间方面的历史演进。因为在我们深入研究TiKV编译时间的具体技术细节之前，可能需要更多的篇章。所以，这里先有一个漂亮的无说明的图表来捕捉你的想象力。
+本系列的第一篇文章只是关于 Rust 在编译时间方面的历史演进。因为在我们深入研究TiKV编译时间的具体技术细节之前，可能需要更多的篇章。所以，这里先放一个漂亮的图表,无需多言。
 
 ![img2](../../imgs/rust-compile-times-tikv.svg)
 
@@ -109,7 +109,7 @@ If fast compilation time was not a core Rust design principle, what were Rust’
 
 But it’s not like the designers didn’t put /any/ consideration into fast compile times. For example, for any analysis Rust needs to do, the team tried to ensure reasonable bounds on computational complexity. Rust’s design history though is one of increasingly being sucked into a swamp of poor compile-time performance.
 
-但这并不是说设计者没有为编译速度做*任何*考虑。例如，对于 Rust 需要做的任何分析，团队试图确保计算复杂性的合理界限。然而，Rust 的设计历史也是其一步步陷入糟糕的编译时性能沼泽的历史。
+但这并不是说设计者没有为编译速度做*任何*考虑。例如，对于编译Rust代码所要做的任何编译步骤，团队试图确保算法复杂的合理性。然而，Rust 的设计历史也是其一步步陷入糟糕的编译时性能沼泽的历史。
 
 Story time.
 
@@ -119,12 +119,12 @@ Story time.
 
 I don’t remember when I realized that Rust’s bad compile times were a strategic problem for the language, potentially a fatal mistake in the face of competition from future low-level programming languages. For the first few years, hacking almost entirely on the Rust compiler itself, I wasn’t too concerned, and I don’t think most of my peers were either. I mostly remember that Rust compile time was always bad, and like, whatever, I can deal with that.
 
-我不记得自己是什么时候才开始意识到，Rust 糟糕的编译时间其实是该语言的一个战略问题。在面对未来底层编程语言的竞争时可能会是一个致命的错误。在最初的几年里，我几乎完全是对Rust编译器进行Hacking（非常规暴力测试），我并不太担心编译时间的问题，我也不认为其他大多数同事会担心该问题。我印象中大部分时间Rust编译时总是很糟糕，但不管怎样，我能处理好。
+我不记得自己是什么时候才开始意识到，Rust 糟糕的编译时间其实是该语言的一个战略问题。在面对未来底层编程语言的竞争时可能会是一个致命的错误。在最初的几年里，我几乎完全是对Rust编译器进行Hacking（非常规暴力测试），我并不太关心编译时间的问题，我也不认为其他大多数同事会太关心该问题。我印象中大部分时间Rust编译时总是很糟糕，但不管怎样，我能处理好。
 
 When I worked daily on the Rust compiler, it was common for me to have at least three copies of the repository on the computer, hacking on one while all the others were building and testing. I would start building workspace 1, switch terminals, remember what’s going on over here in workspace 2, hack on that for a while, start building in workspace 2, switch terminals, etc. Little flow, constant context switching.
 
 
-针对 Rust 编译器工作的时候，我通常都会在计算机上至少保留三份存储库副本，在所有的编译器都在构建和测试时，我就会 Hacking 其中的一份。我会开始构建工作空间 1，切换终端，记住在工作空间 2 发生了什么，临时做一下修改，然后再开始构建工作空间 2，切换终端，等等。整个流程比较零碎且经常切换上下文。
+针对 Rust 编译器工作的时候，我通常都会在计算机上至少保留三份存储库副本，在其他所有的编译器都在构建和测试时，我就会 Hacking 其中的一份。我会开始编译工作空间 1，切换终端，回想起在工作空间 2 发生了什么，做一下修改，然后再开始编译工作空间 2，切换终端，等等。整个流程比较零碎且经常切换上下文。
 
 This was (and probably is) typical of other Rust developers too. I still do the same thing hacking on TiKV today.
 
@@ -132,7 +132,7 @@ This was (and probably is) typical of other Rust developers too. I still do the 
 
 So, historically, how bad have Rust compile times been? A simple barometer here is to see how Rust’s self-hosting times have changed over the years, which is the time it takes Rust to build itself. Rust building itself is not directly comparable to Rust building other projects, for a variety of reasons, but I think it will be illustrative.
 
-那么，从历史上看，Rust 编译时间有多糟糕呢？这里有一个简单的统计表，可以看到 Rust 的自举（Self-Hosting）时间在过去几年里发生了怎样的变化，也就是使用 Rust 来构建它自己的时间。出于各种原因，Rust 构建自己不能直接与 Rust 构建其他项目相比，但我认为这能说明一些问题。
+那么，从历史上看，Rust 编译时间有多糟糕呢？这里有一个简单的统计表，可以看到 Rust 的自举（Self-Hosting）时间在过去几年里发生了怎样的变化，也就是使用 Rust 来构建它自己的时间。出于各种原因，虽然 Rust 构建自己不能直接与 Rust 构建其他项目相比，但我认为这能说明一些问题。
 
 The  [first Rust compiler](https://gist.github.com/brson/31b6f8c5467b050779ce9aa05d41aa84/edit) , from 2010, called rustboot, was written in OCaml, and it’s ultimate purpose was to build a second compiler, rustc, written in Rust, and begin the self-hosting bootstrap cycle. In addition to being written in Rust, rustc would also use  [LLVM](https://llvm.org/)  as its backend for generating machine code, instead of rustboot’s hand-written x86 code-generator.
 
@@ -140,19 +140,19 @@ The  [first Rust compiler](https://gist.github.com/brson/31b6f8c5467b050779ce9aa
 
 Rust needed to become self-hosting as a means of “dog-fooding” the language — writing the Rust compiler in Rust meant that the Rust authors needed to use their own language to write practical software early in the language design process. It was hoped that self-hosting could lead to a useful and practical language.
 
-Rust需要自举，那样就可以作为一种“自产自销（Dog-Fooding）”的语言。使用 Rust 编写编译器意味着Rust 的作者们需要在语言设计过程的早期，使用自己的语言来编写实用的软件。希望通过自举能产出一种实用的语言。
+Rust需要自举，那样就可以作为一种“自产自销（Dog-Fooding）”的语言。使用 Rust 编写编译器意味着Rust 的作者们需要在语言设计过程的早期，使用自己的语言来编写实用的软件。在实现自举的过程中让 RUST 变成一种实用的语言。
 
 The first time Rust built itself was on April 20, 2011.  [It took one hour](https://mail.mozilla.org/pipermail/rust-dev/2011-April/000330.html) , which was a laughably long time. At least it was back then.
 
-Rust 第一次自行构建是在 2011 年 4 月 20 日。该过程总共花了一个小时，这个编译时间对当时而言，很漫长，甚至还觉得有些可笑。
+Rust 第一次自举构建是在 2011 年 4 月 20 日。该过程总共花了一个小时，在当时我们觉得这甚至很可笑。
 
 That first super-slow bootstrap was an anomaly of bad code-generation and other easily fixable early bugs (probably, I don’t exactly recall). rustc’s performance quickly improved, and Graydon quickly  [threw away the old rustboot compiler](https://github.com/rust-lang/rust/commit/6997adf76342b7a6fe03c4bc370ce5fc5082a869)  since there was nowhere near enough manpower and motivation to maintain parallel implementations.
 
-最初那个超级慢的自举程序有些反常，包含了糟糕的代码生成和其他容易修复的早期错误(可能，我记不清了)。rustc 的性能很快得到了改善，Graydon 很快就[抛弃了旧的 rustboot 编译器](https://github.com/rust-lang/rust/commit/6997adf76342b7a6fe03c4bc370ce5fc5082a869) ，因为没有足够的人力和动力来维护并行实现。
+最初那个超级慢的自举程序慢的有些反常，在于其包含了糟糕的代码生成和其他容易修复的早期错误(可能，我记不清了)。rustc 的性能很快得到了改善，Graydon 很快就[抛弃了旧的 rustboot 编译器](https://github.com/rust-lang/rust/commit/6997adf76342b7a6fe03c4bc370ce5fc5082a869) ，因为没有足够的人力和动力来维护两套实现。
 
 This is where the long, gruelling history of Rust’s tragic compile times began, 11 months after it was initially released in June 2010.
 
-在 2010 年 6 月首次发布的 11 个月之后，Rust 可悲的编译时代漫长而艰难的历史就此开始了。
+在 2010 年 6 月首次发布的 11 个月之后，Rust 编译时长的可悲漫长而艰难的历史就此开始了。
 
 *注意*
 
